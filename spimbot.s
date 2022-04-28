@@ -64,6 +64,7 @@ main:
     or      $t4, $t4, TIMER_INT_MASK            # enable timer interrupt
     or      $t4, $t4, BONK_INT_MASK             # enable bonk interrupt
     or      $t4, $t4, REQUEST_PUZZLE_INT_MASK   # enable puzzle interrupt
+    or      $t4, $t4, RESPAWN_INT_MASK          # enable respawn mask
     or      $t4, $t4, 1 # global enable
     mtc0    $t4, $12
     
@@ -83,6 +84,7 @@ loop: # Once done, enter an infinite loop so that your bot can be graded by QtSp
 # user defined function:
 
 # set a timer for given delay
+# stop if bonked
 # @params: 
 # $a0: time needed
 wait_for_timer:
@@ -91,11 +93,58 @@ wait_for_timer:
     sw  $t9, TIMER
 timer_loop: 
     lb  $t9, has_timer
+    lb  $t8, has_bonked
+    bne $t8, $0, end_timer_loop
     bne $t9, $0, end_timer_loop
     j   timer_loop 
 end_timer_loop:
+    sb  $0, has_timer
+    sb  $0, has_bonked
     jr  $ra
 
+# 1 pixel per 1000 cycles
+# 
+# @params:
+# $a0: absolute direction: 0~360
+# $a1: how many pixel needed to travel
+move_for_pixels:
+    sub $sp, $sp, 4
+    sw  $ra, 0($sp)     #store ra
+
+    sw  $a0, ANGLE
+    li  $t9, 1      # absolute direction
+    sw  $t9, ANGLE_CONTROL
+
+    li  $t9, 10
+    sw  $t9, VELOCITY   # set velocity to 10
+    
+    mul $a0, $a1, 1000  # set target distance
+
+    jal wait_for_timer
+
+    lw  $ra, 0($sp)
+    add $sp, $sp, 4
+    jr  $ra
+
+# @params:
+# $a0: direction:
+#    NORTH=0,
+#    EAST=1,
+#    SOUTH=2,
+#    WEST=3
+fire_charged_shot_to_direction:
+    sub $sp, $sp, 4
+    sw  $ra, 0($sp)
+    sw  $a0, CHARGE_SHOT
+    li  $a0, 10000      #10000 cycle for charge shot
+
+    jal wait_for_timer
+    
+    sw  $a0, SHOOT      #shoot
+
+    lw  $ra, 0($sp)
+    add $sp, $sp, 4
+    jr  $ra 
 
 .kdata
 chunkIH:    .space 40
