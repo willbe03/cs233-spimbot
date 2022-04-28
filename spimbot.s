@@ -50,7 +50,7 @@ counts:     .byte 0:256
 #### Puzzle
 
 has_puzzle: .word 0
-
+has_respawn: .byte 0
 has_bonked: .byte 0
 has_timer: .byte 0
 # -- string literals --
@@ -74,7 +74,163 @@ main:
     sw      $t1, ANGLE_CONTROL
     li      $t2, 0
     sw      $t2, VELOCITY
-        
+    
+start:
+    sb      $0, has_timer
+    sb      $0, has_bonked
+    li      $a0, 10
+    jal     get_bullet
+    lw      $t0 BOT_X
+    li      $t1, 28
+    bne     $t0, $t1, player_2
+player_1:
+    li      $a0, 2          #south
+    jal     shoot
+    li      $a0, 90
+    li      $a1, 48         #south 80 pixel
+    jal     move_for_pixels
+    li      $a0, 1
+    jal     shoot
+    li      $a0, 3
+    jal     shoot
+    li      $a0, 90
+    li      $a1, 8
+    jal     move_for_pixels
+    li      $a0, 1
+    jal     shoot
+    li      $a0, 3
+    jal     shoot
+    # right 7 block
+    li      $a0, 0
+    li      $a1, 56
+    jal     move_for_pixels
+
+    li      $a0, 0
+    jal     shoot
+    # right 1 block
+    li      $a0, 0
+    li      $a1, 8
+    jal     move_for_pixels
+    li      $a0, 0
+    jal     shoot
+
+    #right  6 block
+    li      $a0, 0
+    li      $a1, 48
+    jal     move_for_pixels
+
+    li      $a0, 2
+    jal     shoot
+
+    li      $a0, 0
+    li      $a1, 8
+    jal     move_for_pixels
+    li      $a0, 2
+    jal     shoot
+
+    # down 4 block
+    li      $a0, 3
+    jal     get_bullet 
+    li      $a0, 90
+    li      $a1, 32
+    jal     move_for_pixels
+    li      $a0, 1
+    jal     shoot
+    li      $a0, 0
+    li      $a1, 8
+    jal     move_for_pixels
+    li      $a0, 2
+    jal     shoot
+    li      $a1, 8
+    jal     move_for_pixels
+    li      $a0, 2
+    jal     shoot
+ 
+    # left 2 blk
+    li      $a0, 180
+    li      $a1, 16
+    jal     move_for_pixels
+    # south 16
+    li      $a0, 90
+    li      $a1, 16
+    mul     $a1, $a1, 8
+    jal     move_for_pixels
+
+    li      $a0, 6
+    jal     get_bullet
+    #shoot left
+    li      $a0, 3
+    jal     shoot
+    #left 2
+    li      $a0, 180
+    li      $a1, 16
+    jal     move_for_pixels
+    #shoot up
+    li      $a0, 0
+    jal     shoot
+    #left 1
+    li      $a0, 180
+    li      $a1, 8
+    jal     move_for_pixels
+    # shoot up and down
+
+    li      $a0, 0
+    jal     shoot
+    li      $a0, 2
+    jal     shoot
+    li      $a0, 180
+    li      $a1, 8
+    jal     move_for_pixels
+    # shoot up and down
+
+    li      $a0, 0
+    jal     shoot
+    li      $a0, 180
+    li      $a1, 8
+    jal     move_for_pixels
+    # shoot up and down
+
+    li      $a0, 0
+    jal     shoot
+    li      $a0, 180
+    li      $a1, 8
+    jal     move_for_pixels
+    # shoot up and down
+
+    li      $a0, 0
+    jal     shoot
+
+    li      $a0, 4
+    jal     get_bullet
+
+    li      $a0, 180
+    li      $a1, 8
+    jal     move_for_pixels
+    li      $a0, 90
+    li      $a1, 16
+    jal     move_for_pixels
+
+    li      $a0, 3
+    jal     charge_shot
+
+    li      $a0, 90
+    li      $a1, 16
+    jal     move_for_pixels
+
+    li      $a0, 1
+    jal     shoot
+
+    li      $a0, 3
+    jal     shoot
+
+    li      $a0, 90
+    li      $a1, 16
+    jal     move_for_pixels
+
+    li      $a0, 3
+    jal     charge_shot
+    
+player_2:
     # YOUR CODE GOES HERE!!!!!!
     
 loop: # Once done, enter an infinite loop so that your bot can be graded by QtSpimbot once 10,000,000 cycles have elapsed
@@ -122,6 +278,8 @@ move_for_pixels:
 
     jal     wait_for_timer
 
+    #set speed to 0
+    sw      $0, VELOCITY
     lw      $ra, 0($sp)
     add     $sp, $sp, 4
     jr      $ra
@@ -132,7 +290,7 @@ move_for_pixels:
 #    EAST=1,
 #    SOUTH=2,
 #    WEST=3
-fire_charged_shot_to_direction:
+charge_shot:
     sub     $sp, $sp, 4
     sw      $ra, 0($sp)
     sw      $a0, CHARGE_SHOT
@@ -140,7 +298,7 @@ fire_charged_shot_to_direction:
 
     jal     wait_for_timer
     
-    sw      $a0, SHOOT      #shoot
+    sw      $0, SHOOT      #shoot
 
     lw      $ra, 0($sp)
     add     $sp, $sp, 4
@@ -175,6 +333,30 @@ ENDINF_PUZZLE:
     add     $sp, $sp, 4
 
     jr      $ra
+
+# get bullet
+# @param
+# $a0: bullet needed
+get_bullet:
+    sub		$sp, $sp, 12		
+    sw      $ra, 0($sp)
+    sw      $s0, 4($sp)
+    sw      $s1, 8($sp)
+    move    $s1, $a0
+    li      $s0, 0
+loop_get_bullet:
+    bge     $s0, $s1, end_loop_get_bullet
+    jal     get_and_solve_puzzle
+    add     $s0, $s0, 1
+    j       loop_get_bullet
+end_loop_get_bullet:
+    lw      $ra, 0($sp)
+    lw      $s0, 4($sp)
+    lw      $s1, 8($sp)
+    add     $sp, $sp, 12		
+    jr		$ra					# jump to $ra
+    
+
 
 # shoot to direction
 # @params:
@@ -270,6 +452,8 @@ request_puzzle_interrupt:
 respawn_interrupt:
     sw      $0, RESPAWN_ACK
     #Fill in your respawn handler code here
+    li      $t0, 1
+    sb      $t0, has_respawn
     j       interrupt_dispatch
 
 non_intrpt:                         # was some non-interrupt
