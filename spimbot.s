@@ -68,12 +68,12 @@ main:
     or      $t4, $t4, 1 # global enable
     mtc0    $t4, $12
     
-    li $t1, 0
-    sw $t1, ANGLE
-    li $t1, 1
-    sw $t1, ANGLE_CONTROL
-    li $t2, 0
-    sw $t2, VELOCITY
+    li      $t1, 0
+    sw      $t1, ANGLE
+    li      $t1, 1
+    sw      $t1, ANGLE_CONTROL
+    li      $t2, 0
+    sw      $t2, VELOCITY
         
     # YOUR CODE GOES HERE!!!!!!
     
@@ -88,19 +88,19 @@ loop: # Once done, enter an infinite loop so that your bot can be graded by QtSp
 # @params: 
 # $a0: time needed
 wait_for_timer:
-    lw  $t9, TIMER       # now time
-    add $t9, $t9, $a0   # add needed time to time stamp now 
-    sw  $t9, TIMER
+    lw      $t9, TIMER       # now time
+    add     $t9, $t9, $a0   # add needed time to time stamp now 
+    sw      $t9, TIMER
 timer_loop: 
-    lb  $t9, has_timer
-    lb  $t8, has_bonked
-    bne $t8, $0, end_timer_loop
-    bne $t9, $0, end_timer_loop
-    j   timer_loop 
+    lb      $t9, has_timer
+    lb      $t8, has_bonked
+    bne     $t8, $0, end_timer_loop
+    bne     $t9, $0, end_timer_loop
+    j       timer_loop 
 end_timer_loop:
-    sb  $0, has_timer
-    sb  $0, has_bonked
-    jr  $ra
+    sb      $0, has_timer
+    sb      $0, has_bonked
+    jr      $ra
 
 # 1 pixel per 1000 cycles
 # 
@@ -108,23 +108,23 @@ end_timer_loop:
 # $a0: absolute direction: 0~360
 # $a1: how many pixel needed to travel
 move_for_pixels:
-    sub $sp, $sp, 4
-    sw  $ra, 0($sp)     #store ra
+    sub     $sp, $sp, 4
+    sw      $ra, 0($sp)     #store ra
 
-    sw  $a0, ANGLE
-    li  $t9, 1      # absolute direction
-    sw  $t9, ANGLE_CONTROL
+    sw      $a0, ANGLE
+    li      $t9, 1      # absolute direction
+    sw      $t9, ANGLE_CONTROL
 
-    li  $t9, 10
-    sw  $t9, VELOCITY   # set velocity to 10
+    li      $t9, 10
+    sw      $t9, VELOCITY   # set velocity to 10
     
-    mul $a0, $a1, 1000  # set target distance
+    mul     $a0, $a1, 1000  # set target distance
 
-    jal wait_for_timer
+    jal     wait_for_timer
 
-    lw  $ra, 0($sp)
-    add $sp, $sp, 4
-    jr  $ra
+    lw      $ra, 0($sp)
+    add     $sp, $sp, 4
+    jr      $ra
 
 # @params:
 # $a0: direction:
@@ -133,18 +133,59 @@ move_for_pixels:
 #    SOUTH=2,
 #    WEST=3
 fire_charged_shot_to_direction:
-    sub $sp, $sp, 4
-    sw  $ra, 0($sp)
-    sw  $a0, CHARGE_SHOT
-    li  $a0, 10000      #10000 cycle for charge shot
+    sub     $sp, $sp, 4
+    sw      $ra, 0($sp)
+    sw      $a0, CHARGE_SHOT
+    li      $a0, 10000      #10000 cycle for charge shot
 
-    jal wait_for_timer
+    jal     wait_for_timer
     
-    sw  $a0, SHOOT      #shoot
+    sw      $a0, SHOOT      #shoot
 
-    lw  $ra, 0($sp)
-    add $sp, $sp, 4
-    jr  $ra 
+    lw      $ra, 0($sp)
+    add     $sp, $sp, 4
+    jr      $ra 
+
+
+# get puzzle and solve
+get_and_solve_puzzle:
+    sub     $sp, $sp, 4
+    # store ra
+    sw      $ra, 0($sp)
+
+    la      $t0, puzzle     # t0 = puzzle
+    la      $t1, solution   # t1 = solution
+    la      $t2, counts
+    sw      $t2, 4($t1)
+    sw      $t0, REQUEST_PUZZLE # request puzzle
+PUZZLE_INF: # wait until puzzle was received
+    lw      $t2, puzzle_received
+    bne     $t2, $0, ENDINF_PUZZLE
+    j		PUZZLE_INF
+ENDINF_PUZZLE:
+    sw      $0, puzzle_received
+    add     $a0, $t0, 16
+    move    $a1, $t0
+    move    $a2, $t1
+    jal     count_disjoint_regions
+    la      $t1, solution   # t1 = solution
+    sw      $t1, SUBMIT_SOLUTION
+
+    lw      $ra, 0($sp)
+    add     $sp, $sp, 4
+
+    jr      $ra
+
+# shoot to direction
+# @params:
+# $a0: direction:
+#    NORTH=0,
+#    EAST=1,
+#    SOUTH=2,
+#    WEST=3
+shoot:
+    sw      $a0, SHOOT
+    jr      $ra
 
 .kdata
 chunkIH:    .space 40
