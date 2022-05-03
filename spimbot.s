@@ -229,6 +229,28 @@ player_1:
 
     li      $a0, 3
     jal     charge_shot
+
+    li      $a0, 270
+    li      $a1, 13
+    mul     $a1, $a1, 8
+    jal     move_for_pixels
+
+    li      $a0, 5
+    jal     get_bullet
+
+    li      $a0, 180
+    li      $a1, 8
+    jal     move_for_pixels
+
+    li      $a0, 0
+    jal     charge_shot
+
+    li      $a0, 180
+    li      $a1, 24
+    jal     charge_shot
+
+    
+
     
 player_2:
     # YOUR CODE GOES HERE!!!!!!
