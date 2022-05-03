@@ -252,12 +252,45 @@ player_1:
     li      $a0, 0
     jal     charge_shot
 
-    lb      $t0, has_bonked
-    bne     $0, $t0, start
+    li      $a0, 270
+    li      $a1, 40
+    jal     move_for_pixels
 
+    li      $a0, 3
+    jal     charge_shot
+
+    li      $a0, 1
+    jal     charge_shot
+
+inf:
+    lb      $t0, has_respawn
+    bne     $0, $t0, start
+    j		inf				# jump to target
+    
     
 player_2:
+    li      $a0, 0
+    jal     charge_shot
+    li      $a0, 3
+    jal     charge_shot
+
+    li      $a0, 270
+    li      $a1, 48
+    jal     move_for_pixels
+
+    li      $a0, 3
+    jal     charge_shot
+
+    li      $a0, 180
+    li      $a1, 56
+    jal     move_for_pixels
     
+    li      $a0, 0
+    jal     charge_shot
+    li      $a0, 2
+    jal     charge_shot
+    
+
     
 loop: # Once done, enter an infinite loop so that your bot can be graded by QtSpimbot once 10,000,000 cycles have elapsed
     j loop
