@@ -289,6 +289,25 @@ player_2:
     jal     charge_shot
     li      $a0, 2
     jal     charge_shot
+
+    li      $a0, 180
+    li      $a1, 56
+    jal     move_for_pixels
+
+    li      $a0, 3
+    jal     charge_shot
+
+    li      $a0, 270
+    li      $a1, 21
+    mul     $a1, $a1, 8
+    jal     move_for_pixels
+    
+    li      $a0, 1
+    jal     charge_shot
+
+    li      $a0, 0
+    li      $a1, 16
+    jal     move_for_pixels
     
 
     
