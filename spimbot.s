@@ -247,13 +247,17 @@ player_1:
 
     li      $a0, 180
     li      $a1, 24
+    jal     move_for_pixels
+
+    li      $a0, 0
     jal     charge_shot
 
-    
+    lb      $t0, has_bonked
+    bne     $0, $t0, start
 
     
 player_2:
-    # YOUR CODE GOES HERE!!!!!!
+    
     
 loop: # Once done, enter an infinite loop so that your bot can be graded by QtSpimbot once 10,000,000 cycles have elapsed
     j loop
